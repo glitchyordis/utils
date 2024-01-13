@@ -28,7 +28,7 @@ def move_files(files: List[pathlib.Path], new_dir: str):
     move files from one directory to new dir
     """
     dir = pathlib.Path(new_dir)
-    if not dir.exists() or not dir.is_dir:
+    if not dir.exists() or not dir.is_dir():
         raise UserWarning(f"{dir = } does not exist.")
     else:
         for x in files:
