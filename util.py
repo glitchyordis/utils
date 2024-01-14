@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Literal
 import pathlib
 import json
 import numpy as np
@@ -35,23 +35,51 @@ def move_files(files: List[pathlib.Path], new_dir: str):
             if x.exists() and x.is_file():
                 x.rename(dir/x.name)
 
-def search_files(path: str, file_name: str, exts=Optional[List[str]]):
+def search_files(path: str, file_name: str, exts: Optional[List[str]],
+                recursive: bool, file_name_match_type: Literal["any", "exact"]):
     """
-    Searches through subdir. specified in `path` for files whose name contain `file_name`.
+    Searches through subdir. specified in `path` (if recursive set to True) for files whose name contain/ is exact match to `file_name`.
     
     Args:
         path: path to search for file
-        file_name: file_name to filter
-        exts: extensions of file interested in
+        file_name: file_name to filter (without extension)
+        exts: extensions of file interested in. if None, assumes an ext already exist in filename and use it.
+        recursive: if True, searches subdirectories too
+        file_name_match_typ:
+            "any": matches with any files that contains the strin in `file_name`
+            "except": only matches files that has name == `file_name`
 
     Returns:
         list of filepaths for file whose name contains `file_name`
 
     # Example usage
-    files = search_files(r'E:\Polaris Dataset sorting', '20220811', ['png', 'jpg'])
+    files = util.search_files(<directory to search for file>, 
+                            '20231208_121138', exts=["txt", "png"],
+                            recursive=False, file_name_match_type="exact")
     for file in files:
         print(file)
-    """
+    """ 
+    EXACT = "exact"
+    ANY = "any"
+
+    def search(recursive: bool, files: list, path: pathlib.Path, pattern: str):
+        if recursive:
+            files.extend(list(path.glob(f"**/{pattern}")))
+        else:
+            files.extend(list(path.glob(pattern)))
+
+    assert file_name_match_type in [EXACT, ANY], "Invalid exts used."
+    message = (f"{exts = }\n"
+               f"Confirm using {recursive = }\n?"
+               f"{file_name_match_type = }")
+    if exts is None:
+        if file_name_match_type != EXACT:
+            file_name_match_type = EXACT
+            message += (f"\n\nfile_name_match_type changed to \"{file_name_match_type}\" due to {exts = }")
+
+    proceed = strtobool(gui.popup(message, title = f"{__name__}", button_type=1,
+                                  keep_on_top=True))
+
     # Create a Path object
     path = pathlib.Path(path)
 
@@ -62,14 +90,24 @@ def search_files(path: str, file_name: str, exts=Optional[List[str]]):
 
     # Prepare the file name pattern
     files = []
-    for ext in exts:
-        pattern = f"*{file_name}*.{ext}"
+    if proceed:
+        if isinstance(exts, list):
+            for ext in exts:
+                if file_name_match_type == ANY:
+                    pattern = f"*{file_name}*.{ext}"
+                elif file_name_match_type == EXACT:
+                    pattern = f"{file_name}.{ext}"
+                search(recursive, files, path, pattern)
+        elif exts is None:
+            pattern = f"{file_name}"
+            search(recursive, files, path, pattern)
+        else:
+            raise UserWarning(f"Invalid {exts = }")
 
-        # Search for files
-        files.extend(list(path.glob(f"**/{pattern}")))
-
-    # Return the list of file paths
-    return [str(file.resolve()) for file in files]
+        # Return the list of file paths
+        return [str(file.resolve()) for file in files]
+    else:
+        raise UserWarning(f"User selected {proceed = }")
 
 def compare_file_name(path1: str, path2: str, ext: str = "[jp][np]g"):
     """
@@ -96,7 +134,8 @@ def compare_file_name(path1: str, path2: str, ext: str = "[jp][np]g"):
             print(f"{len(in_path2_not_path1)} Files in path2 but not in path1:\n", in_path2_not_path1)
             print(f"{len(in_both_paths)} Files in both paths:\n", in_both_paths)
     """
-    proceed = strtobool(gui.popup(f"Confirm using {ext = }?", title = f"{__name__}", button_type=1))
+    proceed = strtobool(gui.popup(f"Confirm using {ext = }?", title = f"{__name__}", button_type=1,
+                                  keep_on_top=True))
 
     # Check if the directories exist
     if not pathlib.Path(path1).is_dir():
