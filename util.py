@@ -1,4 +1,4 @@
-from typing import Optional, List, Literal
+from typing import Optional, List, Literal, Tuple
 import pathlib
 import json
 import numpy as np
@@ -109,10 +109,9 @@ def search_files(path: str, file_name: str, exts: Optional[List[str]],
     else:
         raise UserWarning(f"User selected {proceed = }")
 
-def compare_file_name(path1: str, path2: str, ext: str = "[jp][np]g"):
+def compare_file_name(path1: str, path2: str, ext: List[str], recursive: Tuple[bool, bool]):
     """
-    Navigates the subdirectories of path1 and path2 and compare filenames of files with extension 
-    (jpg and png by default). 
+    Navigates the subdirectories of path1 and path2 and compare filenames of files with extension. 
     
     Returns: 
         file names  that are:
@@ -134,7 +133,11 @@ def compare_file_name(path1: str, path2: str, ext: str = "[jp][np]g"):
             print(f"{len(in_path2_not_path1)} Files in path2 but not in path1:\n", in_path2_not_path1)
             print(f"{len(in_both_paths)} Files in both paths:\n", in_both_paths)
     """
-    proceed = strtobool(gui.popup(f"Confirm using {ext = }?", title = f"{__name__}", button_type=1,
+    assert isinstance(recursive, tuple) and len(recursive)==2 and all([isinstance(x, bool) for x in recursive]), f"Invalid recursive setting. {recursive = }"
+    msg = (f"Confirm using\n"
+           f"{ext = }\n"
+           f"{recursive = }")
+    proceed = strtobool(gui.popup(msg, title = f"{__name__}", button_type=1,
                                   keep_on_top=True))
 
     # Check if the directories exist
@@ -144,13 +147,23 @@ def compare_file_name(path1: str, path2: str, ext: str = "[jp][np]g"):
         return None, f"Directory {path2} does not exist.", None
     
     if proceed:
-        # Get the set of all .jpg and .png files in path1
-        # files_in_path1 = {f.name for f in Path(path1).glob('*.[jp][np]g')} # this searches through dir only
-        files_in_path1 = {f.name for f in pathlib.Path(path1).glob(f'**/*.{ext}')} # this searches through subfolder too
+        files_in_path1, files_in_path2 = set(), set()
 
-        # Get the set of all .jpg and .png files in path2
-        # files_in_path2 = {f.name for f in Path(path2).glob('*.[jp][np]g')} # this searches through dir only
-        files_in_path2 = {f.name for f in pathlib.Path(path2).glob(f'**/*.{ext}')} # this searches through subfolder too
+        for extension in ext:
+            # Get the set of all .jpg and .png files in path1
+            # files_in_path1 = {f.name for f in Path(path1).glob('*.[jp][np]g')} # this searches through dir only
+            # files_in_path1 = {f.name for f in pathlib.Path(path1).glob(f'**/*.{ext}')} # this searches through subfolder too
+            if recursive[0]:
+                files_in_path1.update({f.name for f in pathlib.Path(path1).rglob(f'*.{extension}')})
+            else:
+                files_in_path1.update({f.name for f in pathlib.Path(path1).glob(f'*.{extension}')})
+        
+            # Get the set of all .jpg and .png files in path2
+            # files_in_path2 = {f.name for f in Path(path2).glob('*.[jp][np]g')} # this searches through dir only
+            if recursive[1]:
+                files_in_path2.update({f.name for f in pathlib.Path(path2).rglob(f'*.{extension}')}) # this searches through subfolder too
+            else:
+                files_in_path2.update({f.name for f in pathlib.Path(path2).glob(f'*.{extension}')})
 
         # Files in path1 but not in path2
         in_path1_not_path2 = list(files_in_path1 - files_in_path2)
