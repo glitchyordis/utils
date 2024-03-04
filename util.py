@@ -3,6 +3,10 @@ import pathlib
 import json
 import numpy as np
 import pandas as pd
+import cv2
+import torch
+import tqdm
+import time
 import PySimpleGUI as gui
 
 # general
@@ -176,6 +180,91 @@ def compare_file_name(path1: str, path2: str, ext: List[str], recursive: Tuple[b
         return in_path1_not_path2, in_path2_not_path1, in_both_paths
     else:
         raise UserWarning(f"User selected {proceed = }")
+
+# ultralytics
+class UltralyticsUtils:
+    def obj_det(self, 
+                save_dir: str, 
+                img_folder_path: str, 
+                yolov5_repo_path: str, 
+                model_path: str, 
+                model_conf: float,
+                inf_sz: int = 480,
+                output_sz: Tuple[int, int] = (1000, 769),
+                save_img: bool = True,
+                save_pandas: bool = False,
+                incl: List[str] = list(),
+                excl: List[str] = list(),):
+        """
+        Performs obj det with yolov5 from ultralytics and save images with result annotated + pandas result.
+        Args:
+            save_dir: str
+                which directory to save results to 
+            img_folder_path: str
+                folder containing images to inference on
+            yolov5_repo_path: str
+                folder containing yolov5 cloned repo
+            model_path: str
+                path to model.pt file
+            model_conf: float
+                if >0, sets model.conf to model_conf
+            inf_sz: int
+                size to perform inference using model
+            output_sz:
+                image output sz
+            save_pandas:
+                whether to save pandas result
+            save_img:
+                whether to save img with resutles rendered
+            incl:
+                list of img (name+extension) to perform inference on
+            excl:
+                list of img (name+extension) to not perform inference on
+        """
+        start_time = time.perf_counter()
+        save_dir = pathlib.Path(save_dir) 
+        img_folder_path = pathlib.Path(img_folder_path)
+
+        if not img_folder_path.exists() or not img_folder_path.is_dir():
+            raise UserWarning("issue with img_folder_path")
+        
+        images = list(img_folder_path.glob('*.[jp][np][g]*'))
+        if not images:
+            raise UserWarning("no images found.")
+
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        if any(p.is_file() for p in save_dir.iterdir()):
+            raise UserWarning("a file exist, make sure the images are no longer required/ saved at another dir/ subdir")
+
+        if incl:
+            images = [img for img in images if img.name in incl]
+        if excl:
+            images = [img for img in images if img.name not in excl]
+
+        total_images = len(images)
+        if total_images>0:
+            model = torch.hub.load(yolov5_repo_path, 'custom', path=model_path,
+                source='local', force_reload=True)
+            if model_conf>0:
+                model.conf = model_conf
+        time.sleep(0.01)
+        progress_bar = tqdm.tqdm(total=total_images)
+        for img in images:
+            results = model(img, size=inf_sz)
+            results.render()
+
+            if save_pandas:
+                results.pandas().xyxy[0].to_csv(str(save_dir/f'{img.stem}.txt'), 
+                                                sep='\t', index=False)
+            for im in results.ims:
+                if save_img:
+                    cv2.imwrite(str(save_dir/f"{img.stem}.png"), 
+                                cv2.resize(im, output_sz)[:,:,::-1])
+            progress_bar.update()
+
+        print(f"completed in {time.perf_counter() - start_time} s.")
+        progress_bar.close()
 
 # json
 class CustomJSONEncoder(json.JSONEncoder):
