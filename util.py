@@ -26,6 +26,19 @@ def strtobool(val):
     else:
         raise ValueError("invalid truth value %r" % (val,))
 
+# pandas
+def df_to_string(df: pd.DataFrame, n: int = 0):
+    """
+    Converts a dataframe to string.
+
+    Args:
+        n:
+            number of indentations for the whole dataframe as a table
+    """
+    indent = " " * n
+    x = indent + df.to_string().replace("\n", "\n" + indent)
+    return x
+
 # directory related
 def move_files(files: List[pathlib.Path], new_dir: str):
     """
@@ -255,8 +268,10 @@ class UltralyticsUtils:
             results.render()
 
             if save_pandas:
-                results.pandas().xyxy[0].to_csv(str(save_dir/f'{img.stem}.txt'), 
-                                                sep='\t', index=False)
+                df = results.pandas().xyxy[0]
+                txt_file = str(save_dir/f'{img.stem}.txt')
+                with open(txt_file, "w") as f:
+                    f.write(df_to_string(df))
             for im in results.ims:
                 if save_img:
                     cv2.imwrite(str(save_dir/f"{img.stem}.png"), 
