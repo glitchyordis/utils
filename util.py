@@ -303,7 +303,7 @@ class PlotlyUtils:
                                         mode='markers', 
                                         marker=dict(size=6,color='black'))])
         fig.update_layout(margin=dict(l=0,r=0,b=0,t=0))
-        plt.savefig('Figure_03_07b.png',dpi=300)
+        # plt.savefig('Figure_03_07b.png',dpi=300)
         fig.show()
 
 # Matplotlib
@@ -316,7 +316,220 @@ class MatplotlibUtils:
         plt.rcParams.update({'font.size':14}) # set global font size
     """
 
+    """
+    to test , assuming we don't have any other attributes or methods other than `plot_<>` and `plot`, we can do 
+        for i in range(999): # specify depth
+            try:
+                if not i:
+                    x.__getattribute__("plot")()
+                else:
+                    x.__getattribute__(f"plot{i+1}")()
+            except AttributeError as e:
+                print(f"{e = }")
+                break
+    """
+
     def plot(self):
+        # create a vector
+        v = np.array([-1,2])
+
+        # plot that vector (and a dot for the tail)
+        plt.arrow(0,0,v[0],v[1],head_width=.5,width=.1)
+        plt.plot(0,0,'ko',markerfacecolor='k',markersize=7)
+
+        # add axis lines
+        plt.plot([-3,3],[0,0],'--',color=[.8,.8,.8],zorder=-1) # zorder allows layering like photoshop layers
+        plt.plot([0,0],[-3,3],'--',color=[.8,.8,.8],zorder=-1)
+
+        # make the plot look nicer
+        plt.axis('square')
+        plt.axis([-3,3,-3,3])
+        plt.xlabel('$v_0$')
+        plt.ylabel('$v_1$')
+        plt.title('Vector v in standard position')
+        plt.show()
+
+    def plot2(self):
+        # A range of starting positions
+        
+        # create a vector
+        v = np.array([-1,2])
+        startPos = [
+                    [0,0],
+                    [-1,-1],
+                    [1.5,-2]
+                    ]
+
+
+        # create a new figure
+        fig = plt.figure(figsize=(6,6))
+
+        for s in startPos:
+
+            # plot that vector (and a dot for the tail)
+            # note that plt.arrow automatically adds an offset to the third/fourth inputs
+            plt.arrow(s[0],s[1],v[0],v[1],head_width=.5,width=.1,color='black')
+            plt.plot(s[0],s[1],'ko',markerfacecolor='k',markersize=7)
+
+            # indicate the vector in its standard position
+            if s==[0,0]:
+                plt.text(v[0]+.1,v[1]+.2,'"Standard pos."')
+
+
+        # add axis lines
+        plt.plot([-3,3],[0,0],'--',color=[.8,.8,.8],zorder=-1)
+        plt.plot([0,0],[-3,3],'--',color=[.8,.8,.8],zorder=-1)
+
+        # make the plot look nicer
+        plt.axis('square')
+        plt.axis([-3,3,-3,3])
+        plt.xlabel('$v_0$')
+        plt.ylabel('$v_1$')
+        plt.title('Vector $\mathbf{v}$ in various locations')
+        # plt.savefig('Figure_02_01.png',dpi=300) # write out the fig to a file
+        plt.show()
+
+    def plot3(self):
+        # a scalar
+        s = 3.5
+
+        # a vector
+        b = np.array([3,4])
+
+        # plot
+        plt.plot([0,b[0]],[0,b[1]],'m--',linewidth=3,label='b')
+        plt.plot([0,s*b[0]],[0,s*b[1]],'k:',linewidth=3,label='sb')
+
+        plt.grid()
+        plt.axis('square')
+        plt.axis([-6,6,-6,6])
+        plt.legend()
+        plt.show()
+
+    def plot4(self):
+        # Effects of different scalars
+
+        # a list of scalars:
+        scalars = [ 1, 2, 1/3, 0, -2/3 ]
+
+        baseVector = np.array([ .75,1 ])
+
+        # create a figure
+        fig,axs = plt.subplots(1,len(scalars),figsize=(12,3))
+        i = 0 # axis counter
+
+        for s in scalars:
+
+            # compute the scaled vector
+            v = s*baseVector
+
+            # plot it
+            axs[i].arrow(0,0,baseVector[0],baseVector[1],head_width=.3,width=.1,color='k',length_includes_head=True)
+            axs[i].arrow(.1,0,v[0],v[1],head_width=.3,width=.1,color=[.75,.75,.75],length_includes_head=True)
+            axs[i].grid(linestyle='--')
+            axs[i].axis('square')
+            axs[i].axis([-2.5,2.5,-2.5,2.5])
+            axs[i].set(xticks=np.arange(-2,3), yticks=np.arange(-2,3))
+            axs[i].set_title(f'$\sigma$ = {s:.2f}')
+            i+=1 # update axis counter
+
+        plt.tight_layout()
+        # plt.savefig('Figure_02_03.png',dpi=300)
+        plt.show()
+
+    def plot5(self):
+        v = np.array([1, 2])
+        w = np.array([4, -6])
+        u = v+w
+
+        plt.figure(figsize=(6,6))
+
+        a1 = plt.arrow(0,0,v[0],v[1],head_width=.3,width=.1,color='k',length_includes_head=True)
+        a2 = plt.arrow(v[0],v[1],w[0],w[1],head_width=.3,width=.1,color=[.5,.5,.5],length_includes_head=True)
+        a3 = plt.arrow(0,0,u[0],u[1],head_width=.3,width=.1,color=[.8,.8,.8],length_includes_head=True)
+
+
+        # make the plot look a bit nicer
+        plt.grid(linestyle='--',linewidth=.5)
+        plt.axis('square')
+        plt.axis([-6,6,-6,6])
+        plt.legend([a1,a2,a3],['v','w','v+w'])
+        plt.title('Vectors $\mathbf{v}$, $\mathbf{w}$, and $\mathbf{v+w}$')
+        # plt.savefig('Figure_02_02a.png',dpi=300) # write out the fig to a file
+        plt.show()
+
+    def plot6(self):
+        # the vectors a and b
+        a = np.array([1,2])
+        b = np.array([1.5,.5])
+
+        # compute beta
+        beta = np.dot(a,b) / np.dot(a,a)
+
+        # compute the projection vector (not explicitly used in the plot)
+        projvect = b - beta*a
+
+        # draw the figure
+        plt.figure(figsize=(4,4))
+
+        # vectors
+        plt.arrow(0,0,a[0],a[1],head_width=.2,width=.02,color='k',length_includes_head=True)
+        plt.arrow(0,0,b[0],b[1],head_width=.2,width=.02,color='k',length_includes_head=True)
+
+        # projection vector
+        plt.plot([b[0],beta*a[0]],[b[1],beta*a[1]],'k--')
+
+        # projection on a
+        plt.plot(beta*a[0],beta*a[1],'ko',markerfacecolor='w',markersize=13)
+
+        # make the plot look nicer
+        plt.plot([-1,2.5],[0,0],'--',color='gray',linewidth=.5)
+        plt.plot([0,0],[-1,2.5],'--',color='gray',linewidth=.5)
+
+        # add labels
+        plt.text(a[0]+.1,a[1],'a',fontweight='bold',fontsize=18)
+        plt.text(b[0],b[1]-.3,'b',fontweight='bold',fontsize=18)
+        plt.text(beta*a[0]-.35,beta*a[1],r'$\beta$',fontweight='bold',fontsize=18)
+        plt.text((b[0]+beta*a[0])/2,(b[1]+beta*a[1])/2+.1,r'(b-$\beta$a)',fontweight='bold',fontsize=18)
+
+        # some finishing touches
+        plt.axis('square')
+        plt.axis([-1,2.5,-1,2.5])
+        plt.show()
+
+    def plot7(self):
+        # generate random R2 vectors (note: no orientation here! we don't need it for this exercise)
+        t = np.random.randn(2)
+        r = np.random.randn(2)
+
+        print(f"{t = }\n{r = }")
+
+        # the decomposition
+        t_para = r * (np.dot(t,r) / np.dot(r,r))
+        t_perp = t - t_para
+
+        # confirm orthogonality (dot product must be zero!)
+        assert np.dot(t_para, t_perp)<1e-9, f"{np.dot(t_para, t_perp)}"
+        # Note about this result: Due to numerical precision errors, 
+        #   you might get a result of something like 10^-17, which can be interpretd as zero.
+
+        # draw them!
+        plt.figure(figsize=(4,4))
+
+        # draw main vectors
+        plt.plot([0,t[0]],[0,t[1]],color='k',linewidth=3,label=r'$\mathbf{t}$')
+        plt.plot([0,r[0]],[0,r[1]],color=[.7,.7,.7],linewidth=3,label=r'$\mathbf{r}$')
+
+        # draw decomposed vector components
+        plt.plot([0,t_para[0]],[0,t_para[1]],'k--',linewidth=3,label=r'$\mathbf{t}_{\|}$')
+        plt.plot([0,t_perp[0]],[0,t_perp[1]],'k:',linewidth=3,label=r'$\mathbf{t}_{\perp}$')
+
+        plt.axis('equal')
+        plt.legend()
+        # plt.savefig('Figure_02_08.png',dpi=300)
+        plt.show()
+
+    def plot8(self):
         # points (in Cartesian coordinates)
         p = (3,1)
         q = (-6,2)
@@ -337,10 +550,10 @@ class MatplotlibUtils:
         plt.xlim([-7,7])
         plt.ylim([-7,7])
         plt.legend()
-        plt.savefig('Figure_03_04.png',dpi=300)
+        # plt.savefig('Figure_03_04.png',dpi=300)
         plt.show()
 
-    def plot2(self):
+    def plot9(self):
         A = np.array([1, 3])
 
         xlim = [-4, 4]
