@@ -7,6 +7,7 @@ import cv2
 import torch
 import tqdm
 import time
+import matplotlib.pyplot as plt
 import PySimpleGUI as gui
 
 # general
@@ -280,6 +281,82 @@ class UltralyticsUtils:
 
         print(f"completed in {time.perf_counter() - start_time} s.")
         progress_bar.close()
+
+# Plotly
+class PlotlyUtils:
+    def plot(self):
+        import plotly.graph_objects as go
+        xlim = [-4, 4]
+
+        # two vectors in R3
+        v1 = np.array([ 3,5,1 ])
+        v2 = np.array([ 0,2,2 ])
+
+        scalars = np.random.uniform(low=xlim[0],high=xlim[1],size=(100,2))
+
+        points = np.outer(scalars[:,0],v1)+np.outer(scalars[:,1],v2)
+
+        # draw the dots in the plane
+        fig = go.Figure(data=[go.Scatter3d(x=points[:,0], 
+                                        y=points[:,1], 
+                                        z=points[:,2], 
+                                        mode='markers', 
+                                        marker=dict(size=6,color='black'))])
+        fig.update_layout(margin=dict(l=0,r=0,b=0,t=0))
+        plt.savefig('Figure_03_07b.png',dpi=300)
+        fig.show()
+
+# Matplotlib
+class MatplotlibUtils:
+    """
+    the book "Practical linear algebra for data science: from core concepts to applications using Python" 
+    (ISBN: 978-1-09-812061-0) uses the following line in ipynb to setup for Orielly
+        import matplotlib_inline.backend_inline
+        matplotlib_inline.backend_inline.set_matplotlib_formats('svg') # print figures in svg format
+        plt.rcParams.update({'font.size':14}) # set global font size
+    """
+
+    def plot(self):
+        # points (in Cartesian coordinates)
+        p = (3,1)
+        q = (-6,2)
+
+        plt.figure(figsize=(6,6))
+
+        # draw points
+        plt.plot(p[0], p[1],'ko',markerfacecolor='k',markersize=10,label='Point p')
+        plt.plot(q[0], q[1],'ks',markerfacecolor='k',markersize=10,label='Point q')
+
+        # draw basis vectors
+        # note syntax: plt.plot(<list of x>, <list of y>, <args/kwargs>)
+        plt.plot([0,0],[0,1],'k',linewidth=3, label='Basis S')
+        plt.plot([0,1],[0,0],'k--',linewidth=3)
+
+        plt.axis('square')
+        plt.grid(linestyle='--',color=[.8,.8,.8])
+        plt.xlim([-7,7])
+        plt.ylim([-7,7])
+        plt.legend()
+        plt.savefig('Figure_03_04.png',dpi=300)
+        plt.show()
+
+    def plot2(self):
+        A = np.array([1, 3])
+
+        xlim = [-4, 4]
+        scalars = np.random.uniform(low=xlim[0], high=xlim[1], size=100)
+        print(f"{scalars = }")
+
+        output = np.outer(scalars, A)
+        print(f"{output.shape = }")
+
+        plt.figure(figsize=(6,6))
+        plt.scatter(output[:,0], output[:,1], color="k", marker="o")
+        plt.xlim(xlim)
+        plt.ylim(xlim)
+        plt.grid()
+        plt.text(-4.5, 4.5, "A", fontweight="bold", fontsize=18)
+        plt.show()
 
 # json
 class CustomJSONEncoder(json.JSONEncoder):
