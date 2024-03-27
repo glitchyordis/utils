@@ -571,6 +571,295 @@ class MatplotlibUtils:
         plt.text(-4.5, 4.5, "A", fontweight="bold", fontsize=18)
         plt.show()
 
+    def plot10(self):
+        N = 30
+
+        # correlated random var
+        x = np.linspace(0,10,N) + np.random.rand(N)
+        y = x + np.random.randn(N)
+
+        # setup figure
+        _, axs = plt.subplots(2, 2, figsize=(6,6))
+
+        def common_axs_setting(axs):
+            axs.set_xlabel("Variable x")
+            axs.set_ylabel("Variable y")
+            axs.set_xticks([])
+            axs.set_yticks([])
+            axs.axis("square")
+
+        axs[0,0].plot(x, y, "ko")
+        axs[0,0].set_title("Positive correlation", fontweight="bold")
+        common_axs_setting(axs[0,0])
+
+        axs[0,1].plot(x, -y, "ko")
+        axs[0,1].set_title("negative correlation", fontweight="bold")
+        common_axs_setting(axs[0,1])
+
+        axs[1,0].plot(np.random.randn(N), np.random.randn(N), "ko")
+        axs[1,0].set_title('Zero correlation',fontweight='bold')
+        common_axs_setting(axs[1,0])
+
+        # /20 to scale down
+        x = np.cos(np.linspace(0, 2*np.pi, N)) + np.random.randn(N)/20
+        y = np.sin(np.linspace(0, 2*np.pi, N)) + np.random.randn(N)/20
+        axs[1,1].plot(x, y, "ko")
+        axs[1,1].set_title('Zero correlation',fontweight='bold')
+        common_axs_setting(axs[1,1])
+
+        plt.tight_layout()
+        # plt.savefig('Figure_04_01.png',dpi=300) # write out the fig to a file
+        plt.show()
+
+    def plot11(self):
+        def corrAndCos(x, y):
+            """
+            calcs cosine similarity and pearson corr.
+            """
+            # cosine similarity
+            cos = np.dot(x, y)/(np.linalg.norm(x)*np.linalg.norm(y))
+            
+            # pearson corr.
+            xm = x - np.mean(x)
+            ym = y - np.mean(y)
+            num = np.dot(xm, ym)
+            den = (np.linalg.norm(xm)*np.linalg.norm(ym)) 
+            cor = num/den
+            return cor, cos
+
+        a = np.arange(4, dtype=int) # essentially one of the vector for calc correlation
+        offsets = np.arange(-50, 51)
+
+        results = np.zeros((len(offsets), 2))
+
+        for i in range(len(offsets)):
+            results[i,:] = corrAndCos(a, a+offsets[i]) 
+            
+        plt.figure(figsize=(8,4))
+        h = plt.plot(offsets,results)
+        h[0].set_color('k')
+        h[0].set_marker('o')
+        h[1].set_color([.7,.7,.7])
+        h[1].set_marker('s')
+
+        plt.xlabel('Mean offset')
+        plt.ylabel('r or c')
+        plt.legend(['Pearson','Cosine sim.'])
+        # plt.savefig('Figure_04_02.png',dpi=300) # write out the fig to a file
+        plt.show()
+
+    def plot_12(self):
+        kernel = np.array([-1, 1])
+
+        signal = np.zeros(30)
+        signal[10:20]=1
+
+        feature_map = np.zeros(len(signal))
+
+        for t in range(1, len(signal)-1):
+            feature_map[t] = np.dot(kernel, signal[t-1:t+1]) 
+
+        _, axs = plt.subplots(1,3, figsize=(15,3))
+        axs[0].plot(kernel,"ks-")
+        axs[0].set_title("kernel")
+        axs[0].set_xlim([-15,15])
+
+        axs[1].plot(signal, 'ks-')
+        axs[1].set_title("Time series signal")
+
+        axs[2].plot(signal, 'ks-', label="signal", linewidth=3)
+        markers, stemlines, _ = axs[2].stem(range(len(feature_map)), feature_map, 
+                                            basefmt=" ", linefmt = "", markerfmt="o",
+                                            label="Edge detection")
+        plt.setp(stemlines, "color", [.7,.7,.7])
+        plt.setp(markers, "color", [.7,.7,.7])
+
+
+        axs[2].legend()
+        # plt.savefig('Figure_04_04ac.png',dpi=300)
+        plt.show()
+
+    def plot_13(self):
+        # define the kernel (a sorta-kinda Gaussian)
+        kernel = np.array([0,.1,.3,.8,1,.8,.3,.1,0])
+        kernel /= np.sum(kernel)
+        """
+        Copilot
+        Divide kernel by np.sum(kernel): This is done to normalize the kernel. In other words, 
+        the sum of all elements in the kernel will be 1 after this operation. 
+
+        This is a common practice when using kernels for convolution in signal processing, 
+        as it ensures that the overall energy of the 
+        signal is preserved after the convolution operation.
+
+        Normalizing the kernel by its sum instead of its maximum value ensures that the overall energy or amplitude of the signal is 
+        preserved after the convolution operation.
+
+        When you normalize by the sum, the total weight of the kernel is 1. This means that when you apply the kernel to the signal, 
+        the sum of the original values in the window covered by the kernel will be the same before and after the convolution. 
+        This is important in many applications where the absolute scale of the signal matters.
+
+        If you normalize by the maximum value, the highest value in the kernel will be 1, but the sum of the kernel values may not be 1. 
+        This could result in the signal being amplified or attenuated after the convolution, depending on the shape of the kernel.
+
+        In summary, normalizing by the sum is a common practice in signal processing to preserve the energy or amplitude of the signal during convolution operations. However, the appropriate normalization method can depend on the specific application and the properties of the kernel and signal. I hope this helps! Let me know if you have any other questions.
+
+        Let us say we have a kernel of length 3: kernel = np.array([1, 2, 1]).
+        If we normalize by the sum, we divide each element by the sum of all elements (which is 4 in this case):
+
+        kernel = kernel / np.sum(kernel) 
+            = [1/4, 2/4, 1/4] 
+            = [0.25, 0.5, 0.25]
+
+        Now, let us say we apply this kernel to a part of the signal that is [3, 4, 3]. The convolution operation (dot product in this case) would be:
+
+        np.dot(kernel, signal) 
+        = 0.25*3 + 0.5*4 + 0.25*3 
+        = 0.75 + 2 + 0.75 
+        = 3.5
+
+        Notice that the result (3.5) is close to the original center value of the signal (4). 
+        This is because the kernel is normalized by sum, which preserves the overall energy of the signal.
+
+        On the other hand, if we normalize by the maximum value, the kernel becomes [1/2, 1, 1/2] = [0.5, 1, 0.5]. 
+        If we apply this kernel to the same part of the signal, the result would be:
+
+        np.dot(kernel, signal) 
+        = 0.5*3 + 1*4 + 0.5*3 
+        = 1.5 + 4 + 1.5 
+        = 7
+
+        This result (7) is larger than the original center value of the signal (4), which means the signal has been amplified. 
+        This is why normalizing by sum is often preferred in signal processing, as it preserves the overall energy of the signal.
+
+        """
+
+        # length param.
+        Nkernel = len(kernel)
+        halfKrn = Nkernel//2 # find midpoint
+        """
+        Copilot
+        finding the midpoint of the kernel. 
+
+        This is useful for the convolution operation, as the kernel is applied symmetrically 
+        around each point in the signal. By knowing the midpoint of the kernel, the coder can correctly
+        align the kernel with the signal during the convolution operation. The // operator is used for
+        integer division, which means that if the kernel length is odd, the midpoint will be rounded down. 
+        
+        For example, if Nkernel is 9, halfKrn will be 4. This means the
+        kernel will be applied to the signal from 4 points before to 4 points after the current point. 
+        """
+
+        # and the signal
+        Nsignal = 100
+        timeseries = np.random.randn(Nsignal)
+
+        # make a copy of the signal for filtering
+        filtsig = timeseries.copy()
+
+        # loop over the signal time points
+        for t in range(halfKrn+1,Nsignal-halfKrn):
+            filtsig[t] = np.dot(kernel,timeseries[t-halfKrn-1:t+halfKrn])
+
+        # plot them
+        _,axs = plt.subplots(1,3,figsize=(25,4))
+        axs[0].plot(kernel,'ks-')
+        axs[0].set_title('Kernel')
+        axs[0].set_xlim([-1,Nsignal])
+
+        axs[1].plot(timeseries,'ks-')
+        axs[1].set_title('Time series signal')
+
+        axs[2].plot(timeseries,color='k',label='Original',linewidth=1)
+        axs[2].plot(filtsig,'--',color=[.6,.6,.6],label='Smoothed',linewidth=2)
+        axs[2].legend()
+
+        # plt.savefig('Figure_04_06c.png',dpi=300)
+        plt.show()
+
+
+    def plot14(self):
+        ## Create data
+        nPerClust = 50
+
+        # blur around centroid (std units)
+        blur = 1
+
+        # XY centroid locations
+        A = [1, 1]
+        B = [-3, 1]
+        C = [3, 3]
+
+        # generate data
+        a = [A[0]+np.random.randn(nPerClust)*blur, A[1]+np.random.randn(nPerClust)*blur]
+        b = [B[0]+np.random.randn(nPerClust)*blur, B[1]+np.random.randn(nPerClust)*blur]
+        c = [C[0]+np.random.randn(nPerClust)*blur, C[1]+np.random.randn(nPerClust)*blur]
+
+        # concatanate into a matrix
+        data = np.transpose(np.concatenate((a,b,c),axis=1))
+
+        # plot data
+        plt.plot(data[:,0],data[:,1],'ko',markerfacecolor='w')
+        plt.title('Raw (preclustered) data')
+        plt.xticks([])
+        plt.yticks([])
+
+        plt.show()
+
+        ## initialize random cluster centroids
+        k = 3 # extract three clusters
+
+        # random cluster centers (randomly sampled data points)
+        ridx = np.random.choice(range(len(data)), k, replace=False)
+        centroids = data[ridx,:]
+
+        # setup the figure
+        fig, axs = plt.subplots(2,2,figsize=(6,6))
+        axs = axs.flatten()
+        lineColors = [[0,0,0],[.4,.4,.4],[.8,.8,.8] ] #'rbm'
+
+        # plot data with initial random cluster centroids
+        axs[0].plot(data[:,0],data[:,1],'ko',markerfacecolor='w')
+        axs[0].plot(centroids[:,0],centroids[:,1],'ko')
+        axs[0].set_title('Iteration 0')
+        axs[0].set_xticks([])
+        axs[0].set_yticks([])
+
+        # loop over iterations
+        for iteri in range(3):
+            
+            # step 1: compute distances
+            dists = np.zeros((data.shape[0],k))
+            for ci in range(k):
+                dists[:,ci] = np.sum((data-centroids[ci,:])**2,axis=1)
+            """
+            Copilot
+
+            we can vectorize this for loop with 
+            dists = np.sum((data[:, np.newaxis] - centroids) **2, axis=2)
+            """
+                    
+            # step 2: assign to group based on minimum distance
+            groupidx = np.argmin(dists,axis=1)
+                
+            # step 3: recompute centers
+            for ki in range(k):
+                centroids[ki,:] = [np.mean(data[groupidx==ki,0]), 
+                                np.mean(data[groupidx==ki,1]) ]
+            
+            # plot data points
+            for i in range(len(data)):
+                axs[iteri+1].plot([data[i,0], centroids[groupidx[i],0]],
+                                [data[i,1], centroids[groupidx[i],1]],
+                                color=lineColors[groupidx[i]])
+            axs[iteri+1].plot(centroids[:,0], centroids[:,1], 'ko')
+            axs[iteri+1].set_title(f'Iteration {iteri+1}')
+            axs[iteri+1].set_xticks([])
+            axs[iteri+1].set_yticks([])
+
+            # plt.savefig('Figure_04_03.png',dpi=300)
+            plt.show()
+
 # json
 class CustomJSONEncoder(json.JSONEncoder):
     """
