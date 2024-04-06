@@ -329,6 +329,106 @@ class MatplotlibUtils:
                 break
     """
 
+    def general_subplot_subplots_example(self, example_id: int):
+        if example_id == 0:
+            print("example using subplot")
+            # X-Axis
+            data_x = np.linspace(0, 1000, 25)
+
+            # Y-Axis
+            np.random.seed(502)
+            data_t = np.random.rand(25)
+            increment = 1
+            data_y = []
+            for each in data_t:
+                data_y.append(each*increment)
+                increment += .065 * increment
+
+            plt.figure(facecolor='lightgrey')
+            # can also do fig = plt.figure(facecolor='lightgrey')
+            plt.subplot(2,2,1, frame_on=False) # or plt.subplot(221), perhaps matplotlib assumes single digit
+            plt.plot(data_x, data_y, 'r-')
+            """
+            you can also do 
+            ax1 = plt.subplot(2,2,1)
+            ax1.plot(data_x, data_y, 'r-')
+
+            or 
+
+            ax1 = plt.subplot(2,2,1)
+            plt.plot(data_x, data_y, 'r-')
+            """
+            plt.subplot(2,2,2)
+            plt.plot(data_x, data_y, 'b-')
+            plt.title("yout title here")
+            plt.subplot(2,2,4, facecolor="magenta")
+            plt.plot(data_x, data_y, 'g-')
+            plt.suptitle("Your super title Here")
+            plt.xlabel("X Axis")
+            plt.ylabel("Y Axis")
+
+        elif example_id == 1:
+            print("example using subplots")
+            data_x = np.linspace(0, 1000, 25)
+
+            # Y-Axis
+            np.random.seed(502)
+            data_t = np.random.rand(25)
+            increment = 1
+            data_y = []
+            for each in data_t:
+                data_y.append(each*increment)
+                increment += .065 * increment
+
+            fig, ax = plt.subplots(2,2)
+            fig.set_facecolor('lightgrey')
+            ax[0,0].plot(data_x, data_y, 'r-')
+            ax[0,1].plot(data_x, data_y, 'b-')
+            ax[0,1].set_title("title here")
+            fig.delaxes(ax[1,0])
+            ax[1,1].plot(data_x, data_y, 'g-')
+            fig.suptitle("Your super title Here")
+            ax[1,1].set_xlabel("X Axis")
+            ax[1,1].set_ylabel("Y Axis")
+
+        elif example_id==2:
+            print("more example using subplots")
+            # First create some toy data:
+            x = np.linspace(0, 2*np.pi, 400)
+            y = np.sin(x**2)
+
+            # Create just a figure and only one subplot
+            fig, ax = plt.subplots()
+            ax.plot(x, y)
+            ax.set_title('Simple plot')
+
+            # Create two subplots and unpack the output array immediately
+            f, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
+            ax1.plot(x, y)
+            ax1.set_title('Sharing Y axis')
+            ax2.scatter(x, y)
+
+            # Create four polar axes and access them through the returned array
+            fig, axs = plt.subplots(2, 2, subplot_kw=dict(projection="polar"))
+            axs[0, 0].plot(x, y)
+            axs[1, 1].scatter(x, y)
+
+
+            # Share a X axis with each column of subplots
+            plt.subplots(1, 2, sharex='col')
+
+            # Share a Y axis with each row of subplots
+            plt.subplots(1, 2, sharey='row') 
+            # same as plt.subplots(1, 2, sharex=True, sharey=True)
+
+
+            # Create figure number 10 with a single subplot
+            # and clears it if it already exists.
+            fig, ax = plt.subplots(num=10, clear=True)
+        else:
+            raise UserWarning(f"Invalid argument: \n{locals()}")
+
+
     def plot(self):
         # create a vector
         v = np.array([-1,2])
@@ -776,7 +876,6 @@ class MatplotlibUtils:
 
         # plt.savefig('Figure_04_06c.png',dpi=300)
         plt.show()
-
 
     def plot14(self):
         ## Create data
