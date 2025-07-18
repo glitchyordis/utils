@@ -959,6 +959,39 @@ class MatplotlibUtils:
             # plt.savefig('Figure_04_03.png',dpi=300)
             plt.show()
 
+    def plot_as_vid_n_save(self, data: list[list[float]]):
+        """
+        This function plots points as a video and save it
+
+        example data
+            [[0, 0],
+            [20.32, 0],
+            [0, -30.51],
+            [0, -47.42],
+            [24.33, -26.11],
+            [37.33, -26.11],]
+        """
+        from IPython.display import HTML
+
+        fig, ax = plt.subplots()
+        ax.set_xlim(min(x[0] for x in data) - 10, max(x[0] for x in data) + 10)
+        ax.set_ylim(min(x[1] for x in data) - 10, max(x[1] for x in data) + 10)
+
+        def update(frame):
+            ax.clear()
+            ax.set_xlim(min(x[0] for x in data) - 10, max(x[0] for x in data) + 10)
+            ax.set_ylim(min(x[1] for x in data) - 10, max(x[1] for x in data) + 10)
+            ax.scatter([p[0] for p in data[:frame+1]], [p[1] for p in data[:frame+1]], color='blue')
+            ax.set_title(f'Frame {frame+1}')
+
+        ani = FuncAnimation(fig, update, frames=len(data), interval=200)
+        plt.close(fig) # prevents showing last frame in jupyter
+
+        ani.save('points_video.mp4', writer='ffmpeg')
+
+        # For Jupyter: display animation inline
+        return HTML(ani.to_jshtml())
+
 # json
 class CustomJSONEncoder(json.JSONEncoder):
     """
