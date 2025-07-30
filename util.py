@@ -972,6 +972,7 @@ class MatplotlibUtils:
             [37.33, -26.11],]
         """
         from IPython.display import HTML
+        from matplotlib.animation import FuncAnimation
 
         fig, ax = plt.subplots()
         ax.set_xlim(min(x[0] for x in data) - 10, max(x[0] for x in data) + 10)
